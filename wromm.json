@@ -1,0 +1,12 @@
+{
+  "name": "cache-mode-ci",
+  "runtimes": [],
+  "system_packages": ["git", "curl", "ca-certificates"],
+  "services": [],
+  "ports": [],
+  "env": {},
+  "agent": "codex",
+  "source": {
+    "type": "Manual"
+  }
+}
