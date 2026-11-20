@@ -55,3 +55,79 @@ jobs:
         with:
           path: .cache-fixture
           key: wromm-cache-mode-v1
+
+  write-only:
+    needs: seed
+    runs-on: ubuntu-24.04
+    cache-mode: write-only
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - id: cache-restore
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: .write-only-cache
+          key: wromm-cache-mode-write-only-v1
+      - name: Restore is skipped in write-only mode
+        run: test ! -e .write-only-cache/value
+      - name: Create value for an allowed save
+        run: |
+          mkdir -p .write-only-cache
+          printf 'write-only-ok\n' > .write-only-cache/value
+      - uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: .write-only-cache
+          key: wromm-cache-mode-write-only-v1
+
+  verify-write-only:
+    needs: write-only
+    runs-on: ubuntu-24.04
+    cache-mode: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - id: cache-restore
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: .write-only-cache
+          key: wromm-cache-mode-write-only-v1
+      - run: test "$(cat .write-only-cache/value)" = write-only-ok
+
+  none:
+    needs: seed
+    runs-on: ubuntu-24.04
+    cache-mode: none
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - id: cache-restore
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: .none-cache
+          key: wromm-cache-mode-none-v1
+      - run: test ! -e .none-cache/value
+      - run: |
+          mkdir -p .none-cache
+          printf 'must-not-be-saved\n' > .none-cache/value
+      - uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: .none-cache
+          key: wromm-cache-mode-none-v1
+
+  verify-none:
+    needs: none
+    runs-on: ubuntu-24.04
+    cache-mode: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - id: cache-restore
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: .none-cache
+          key: wromm-cache-mode-none-v1
+      - run: test ! -e .none-cache/value
